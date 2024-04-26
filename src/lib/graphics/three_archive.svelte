@@ -18,7 +18,7 @@
 		document.body.appendChild( WebGL.getWebGL2ErrorMessage() );
 	}
 
-	const INITIAL_THRESHOLD = 0.1;
+	const INITIAL_THRESHOLD = 0.5;
 	const INITIAL_OPACITY = 0.8;
 	const INITIAL_STEPS = 200;
 
@@ -38,108 +38,33 @@
 	// Texture -------------------------------------------------------------------
   // ---------------------------------------------------------------------------
 
-	// const size = 128;
-	// const scale = 12;
-	// const data = new Uint8Array( size * size * size );
+	const size = 128;
+	const scale = 12;
+	const data = new Uint8Array( size * size * size );
 
-	// let i = 0;
-	// const perlin = new ImprovedNoise();
-	// const vector = new THREE.Vector3();
+	let i = 0;
+	const perlin = new ImprovedNoise();
+	const vector = new THREE.Vector3();
 
-	// for ( let z = 0; z < size; z ++ ) {
+	for ( let z = 0; z < size; z ++ ) {
 
-	// 	for ( let y = 0; y < size; y ++ ) {
+		for ( let y = 0; y < size; y ++ ) {
 
-	// 		for ( let x = 0; x < size; x ++ ) {
+			for ( let x = 0; x < size; x ++ ) {
 
-	// 			vector.set( x, y, z ).divideScalar( size );
+				vector.set( x, y, z ).divideScalar( size );
 
-	// 			const d = perlin.noise( vector.x * scale, vector.y * scale, vector.z * scale );
+				const d = perlin.noise( vector.x * scale, vector.y * scale, vector.z * scale );
 
-	// 			data[ i ++ ] = d * size + size;
+				data[ i ++ ] = d * size + size;
 
-	// 		}
-
-	// 	}
-
-	// }
-
-	// console.log(data)
-
-
-	// ---------------------------------------------------------------------------
-	// TORI  ---------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
-
-	class Torus {
-			constructor(position, scale, rotation) {
-					this.position = position;
-					this.scale = scale;
-					this.rotation = rotation;
 			}
+
+		}
+
 	}
 
-	const toruses = [
-			new Torus(new THREE.Vector3(0.1, 0.1, 0.1), new THREE.Vector3(0.5, 0.5, 0.5), new THREE.Vector3(0.2, 0.2, 0.2)),
-			new Torus(new THREE.Vector3(0.05, 0.05, 0.05), new THREE.Vector3(0.1, 0.1, 0.1), new THREE.Vector3(0.1, 0.1, 0.1)),
-			new Torus(new THREE.Vector3(0.02, 0.002, 0.02), new THREE.Vector3(0.2, 0.2, 0.2), new THREE.Vector3(0.1, 0.1, 0.1)),
-			// Add more toruses with desired properties
-	];
-
-	// Function to check if a point is inside a torus
-	function isPointInTorus(point, torus) {
-			const transformedPoint = point.clone().sub(torus.position);
-
-			const R = torus.scale.x; // Main radius
-			const r = torus.scale.y; // Tube radius
-
-			const distanceFromTorus = Math.abs(
-					Math.sqrt(transformedPoint.x ** 2 + transformedPoint.z ** 2) - R
-			);
-
-			// Check if the distance from the torus is within the tube radius
-			return distanceFromTorus < r;
-	}
-
-	// Function to count the number of toruses intersecting a point
-	function countTorusesAtPoint(point, toruses) {
-			let count = 0;
-
-			toruses.forEach(torus => {
-					if (isPointInTorus(point, torus)) {
-							count++; // Increment count if within torus bounds
-					}
-			});
-
-			return count; // Return the number of toruses intersecting this point
-	}
-
-	const size = 128; // Size of the 3D cube
-const data = new Uint8Array(size * size * size); // Create a data array
-
-function generateVolumetricData(data, size, toruses) {
-    let i = 0;
-
-    for (let z = 0; z < size; z++) {
-        for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
-                const point = new THREE.Vector3(x, y, z).divideScalar(size);
-                const torusCount = countTorusesAtPoint(point, toruses);
-
-                // Scale torusCount to a range that suits visualization
-                data[i] = torusCount > 0 ? Math.min(torusCount * 64, 255) : 0;
-                i++;
-            }
-        }
-    }
-}
-
-generateVolumetricData(data, size, toruses); // Populate the data array
-
-
-	// ---------------------------------------------------------------------------
-	// DATA  ---------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
+	console.log(data)
 
 	const texture = new THREE.Data3DTexture( data, size, size, size );
 	texture.format = THREE.RedFormat;
@@ -237,14 +162,21 @@ generateVolumetricData(data, size, toruses); // Populate the data array
     vec3 p = vOrigin + bounds.x * rayDir;
     vec3 inc = 1.0 / abs(rayDir);
     float delta = min(inc.x, min(inc.y, inc.z));
+
+    // float animatedSteps = steps - sin(time) * 5.0;
     delta /= steps;
 
     for (float t = bounds.x; t < bounds.y; t += delta) {
         vec3 pos = p + 0.5;
+        float n = noise(pos * 10.0 - time * 1.0);
+        float animatedThreshold = threshold + n * 0.1;
+
         float d = sample1(pos);
 
-        if (d > threshold) {
-            color.rgb = vec3(0.75, 0.75, 0.75); // Adjust this for different torus colors
+        if (d > animatedThreshold) {
+            vec3 colorShift = vec3(0.75) + 0.5 * cos(pos + vec3(4, 1, -4) + n); // vec3 colorShift = vec3(0.75) + 0.5 * cos(time + pos + vec3(4, 1, -4) + n);
+						
+            color.rgb = colorShift;
             color.a = baseOpacity;
             break;
         }
@@ -292,58 +224,55 @@ generateVolumetricData(data, size, toruses); // Populate the data array
         vec3 fp = fract(position);
         float n = mix(mix(dot(ip, vec3(1.0, 57.0, 113.0)), dot(ip + vec3(1.0, 0.0, 0.0), vec3(1.0, 57.0, 113.0)), fp.x),
                       mix(dot(ip + vec3(0.0, 1.0, 0.0), vec3(1.0, 57.0, 113.0)), dot(ip + vec3(1.0, 1.0, 0.0), vec3(1.0, 57.0, 113.0)), fp.x), fp.z);
-        return fract(sin(n) * 4375.85453);
-				// return sin(n) * cos(n);
+        // return fract(sin(n) * 4375.85453);
+				return sin(n) * cos(n);
     }
 
-		void main() {
-    vec3 samplePos;
+    void main() {
+        vec3 samplePos;
 
-    // Set slice position based on the chosen axis
-    if (sliceAxis == 0) {
-        samplePos = vec3(slicePosition, vUv.y, 1.0 - vUv.x); // Slice along X-axis
-    } else if (sliceAxis == 1) {
-        samplePos = vec3(vUv.x, slicePosition, vUv.y); // Slice along Y-axis
-    } else {
-        samplePos = vec3(vUv.x, vUv.y, slicePosition); // Slice along Z-axis
+        if (sliceAxis == 0) {
+            samplePos = vec3(slicePosition, vUv.y, 1.0 - vUv.x);
+        } else if (sliceAxis == 1) {
+            samplePos = vec3(vUv.x, slicePosition, vUv.y);
+        } else {
+            samplePos = vec3(vUv.x, vUv.y, slicePosition);
+        }
+
+        float n = noise(samplePos + sin(time * 1.0));
+        float animatedThreshold = threshold + n * 0.05;
+
+        // Sample the volume texture at the animated position
+        float sampledValue = texture(map, samplePos).r;
+        bool isAboveThreshold = sampledValue > animatedThreshold;
+
+				bool isAboveThreshold2 = sampledValue > animatedThreshold / 1.05;
+				bool isAboveThreshold3 = sampledValue > animatedThreshold / 1.1;
+				bool isAboveThreshold4 = sampledValue > animatedThreshold / 1.15;
+
+        // Use similar color calculation as in the main shader
+        if (isAboveThreshold) {
+					color = vec4(0.168, 0.168, 0.168, 1.0);
+        } else if (isAboveThreshold2) {
+					vec3 colorShift = vec3(0.5) + 0.2 * cos( samplePos + vec3(4, 1, -4) + n); // vec3 colorShift = vec3(0.5) + 0.2 * cos(time + samplePos + vec3(4, 1, -4) + n);
+            color.rgb = colorShift;
+            color.a = baseOpacity;
+				} else if (isAboveThreshold3) {
+					discard;
+					} else if (isAboveThreshold4) {
+						vec3 colorShift = vec3(0.5) + 0.2 * cos(samplePos + vec3(4, 1, -4) + n); // vec3 colorShift = vec3(0.5) + 0.2 * cos(time + samplePos + vec3(4, 1, -4) + n);
+            color.rgb = colorShift;
+            color.a = baseOpacity;
+					} else {
+						discard;
+        }
     }
-
-    // Apply noise to add variation
-    float n = noise(samplePos + sin(time));
-    float adjustedThreshold = threshold + n * 0.05;
-
-    // Sample the 3D texture at the calculated position
-    float sampledValue = texture(map, samplePos).r;
-
-    if (sampledValue > adjustedThreshold) {
-        vec3 colorShift = vec3(0.5) + 0.2 * cos(samplePos + vec3(4, 1, -4) + n);
-        color.rgb = colorShift; // Define RGB color
-        color.a = baseOpacity; // Apply base opacity
-    } else {
-        discard; // If below threshold, discard the fragment
-    }
-}
 `;
 
-function addTorusObjects(toruses, scene) {
-    toruses.forEach(torus => {
-        const R = torus.scale.x; // Main radius
-        const r = torus.scale.y; // Tube radius
 
-        const geometry = new THREE.TorusGeometry(R, r, 16, 100); // Create torus geometry
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true }); // Green, wireframe for visibility
 
-        const mesh = new THREE.Mesh(geometry, material);
 
-        // Position the torus based on its defined position
-        mesh.position.copy(torus.position);
 
-        // Apply rotation if needed
-        mesh.rotation.set(torus.rotation.x, torus.rotation.y, torus.rotation.z);
-
-        scene.add(mesh); // Add the torus to the scene
-    });
-}
 
 	init();
 	animate();
@@ -357,8 +286,6 @@ function addTorusObjects(toruses, scene) {
 		scene = new THREE.Scene();
 
 		setScene();
-
-		addTorusObjects(toruses, scene);
 
 		renderer = new THREE.WebGLRenderer({ antialias: false });
 		renderer.setPixelRatio(window.devicePixelRatio);
