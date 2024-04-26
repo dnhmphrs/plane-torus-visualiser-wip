@@ -39,7 +39,7 @@
   // ---------------------------------------------------------------------------
 
 	const size = 128;
-	const scale = 8;
+	const scale = 12;
 	const data = new Uint8Array( size * size * size );
 
 	let i = 0;
@@ -63,6 +63,8 @@
 		}
 
 	}
+
+	console.log(data)
 
 	const texture = new THREE.Data3DTexture( data, size, size, size );
 	texture.format = THREE.RedFormat;
