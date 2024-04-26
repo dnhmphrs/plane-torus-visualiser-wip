@@ -9,6 +9,8 @@
 	import { screenType, isIframe, screenSize } from '$lib/store/store';
 	import { getDeviceType, getScreenSize } from '$lib/functions/utils';
 
+	import Header from '$lib/components/header/header.svelte';
+	
 	export let data;
 	let Geometry;
 
@@ -31,7 +33,7 @@
 
 	onMount(async () => {
 		// webgl
-		const module = await import('$lib/graphics/webgl.svelte');
+		const module = await import('$lib/graphics/three.svelte');
 		Geometry = module.default;
 
 		handleScreen();
@@ -79,6 +81,9 @@
 
 {#if Geometry}
 	<svelte:component this={Geometry} />
+	<header>
+		<Header />
+	</header>
 {:else}
 	<div class="loading">loading.</div>
 {/if}

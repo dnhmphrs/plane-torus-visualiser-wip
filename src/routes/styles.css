@@ -15,7 +15,7 @@
 	--background: #232323;
 	--background-50: #23232380;
 	--primary: #d0d0d0;
-	--primary-50: #d0d0d0;
+	--primary-50: #d0d0d080;
 }
 
 :root {
@@ -44,7 +44,7 @@
 	text-transform: none;
 	letter-spacing: 0.1em;
 	line-height: 150%;
-	font-size: 14px;
+	font-size: 12px;
 }
 
 /* ::-webkit-scrollbar {
@@ -94,6 +94,13 @@ input,
 button {
 	font-size: inherit;
 	font-family: inherit;
+	background: none;
+}
+
+button {
+	border: none;
+	padding: 4px 8px;
+	border-radius: 8px;
 }
 
 button:focus:not(:focus-visible) {
@@ -125,4 +132,62 @@ button:focus:not(:focus-visible) {
 		letter-spacing: 0.08em;
 		font-size: 13px;
 	}
+}
+
+.visually-hidden {
+	border: 0;
+	clip: rect(0 0 0 0);
+	height: auto;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	white-space: nowrap;
+}
+
+/* General styles for the range input */
+input[type='range'] {
+	-webkit-appearance: none; /* Override default appearance */
+	width: 100%; /* Full-width */
+	margin: 10px 0; /* Specified margin */
+	background: transparent; /* Make the slider background transparent */
+}
+
+/* Styles for the slider's track */
+input[type='range']::-webkit-slider-runnable-track {
+	width: 100%;
+	height: 1px;
+	background: var(--primary);
+	border: none;
+	border-radius: 0;
+}
+
+input[type='range']::-moz-range-track {
+	width: 100%;
+	height: 1px;
+	background: var(--primary);
+	border: none;
+	border-radius: 0;
+}
+
+/* Styles for the slider's thumb */
+input[type='range']::-webkit-slider-thumb {
+	-webkit-appearance: none; /* Override default look */
+	transform: translateY(-7px);
+	appearance: none;
+	height: 15px; /* Set a specific slider handle height */
+	width: 15px; /* Slider handle width */
+	background: var(--background); /* Slider handle color */
+	border: 1px solid var(--primary);
+	cursor: pointer; /* Cursor on hover */
+	border-radius: 50%;
+}
+
+input[type='range']::-moz-range-thumb {
+	height: 15px;
+	width: 15px;
+	background: var(--background);
+	border: 1px solid var(--primary);
+	cursor: pointer;
 }
