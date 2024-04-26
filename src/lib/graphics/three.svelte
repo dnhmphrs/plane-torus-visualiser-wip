@@ -38,7 +38,6 @@
 	// Texture -------------------------------------------------------------------
   // ---------------------------------------------------------------------------
 
-// Assuming Three.js is already imported
 // Class to define a ring with a given radius and plane orientation
 class Ring {
   constructor(radius, orientation, offset) {
@@ -64,15 +63,15 @@ class Ring {
   }
 }
 
-// Define the parameters
+// Centered parameters for the 3D texture
 const size = 128;
 const data = new Uint8Array(size * size * size);
 
-// Initialize the rings with varying parameters
+// Initialize the rings with varying parameters, centered in the scene
 const rings = [
-  new Ring(1, 'x-y', { x: 1, y: 1, z: 0 }),
-  new Ring(1, 'y-z', { x: 1, y: 1, z: 1 }),
-  new Ring(1, 'x-z', { x: 1, y: 0, z: 1 }),
+  new Ring(1, 'x-y', { x: 64, y: 64, z: 64 }),
+  new Ring(1, 'y-z', { x: 64, y: 64, z: 64 }),
+  new Ring(1, 'x-z', { x: 64, y: 64, z: 64 }),
 ];
 
 let i = 0;
@@ -89,12 +88,12 @@ for (let z = 0; z < size; z++) {
         }
       });
 
-      data[i++] = count * 10; // Scale factor to visualize more distinctly
+      data[i++] = count; // No additional scaling to visualize raw voxel data
     }
   }
 }
 
-// Create the texture from the data
+// Create the Data3DTexture from the data
 const texture = new THREE.Data3DTexture(data, size, size, size);
 texture.format = THREE.RedFormat;
 texture.minFilter = THREE.LinearFilter;
@@ -102,7 +101,7 @@ texture.magFilter = THREE.LinearFilter;
 texture.unpackAlignment = 1;
 texture.needsUpdate = true;
 
-// Function to visualize the rings in a Three.js scene
+// Updated scene initialization code with centered rings
 function addRingsToScene(scene, rings) {
   rings.forEach((ring) => {
     const points = [];
@@ -131,7 +130,7 @@ function addRingsToScene(scene, rings) {
 
     const line = new THREE.LineLoop(geometry, material);
 
-    // Offset the line based on the ring's position
+    // Apply centered position
     line.position.set(ring.offset.x, ring.offset.y, ring.offset.z);
 
     scene.add(line);
@@ -339,7 +338,7 @@ function addRingsToScene(scene, rings) {
 	animate();
 
 	function init() {
-		camera = new THREE.PerspectiveCamera(20, width / height, 0.01, 100);
+		camera = new THREE.PerspectiveCamera(20, width / height, 0.01, 10000);
 		camera.position.x = 3; 	
 		camera.position.y = 2; 	
 		camera.position.z = 3; 	

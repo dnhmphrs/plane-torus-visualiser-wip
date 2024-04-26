@@ -7,7 +7,7 @@ export const darkMode = writable(false);
 
 export const screenSize = writable({ width: 0, height: 0 });
 
-export const animationSpeed = writable(1.0);
+export const animationSpeed = writable(0.0);
 export const lastAnimationSpeed = writable(1.0);
 
 export const mousePosition = writable({ x: 0, y: 0, z: 0 });
