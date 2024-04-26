@@ -18,7 +18,7 @@
 		document.body.appendChild( WebGL.getWebGL2ErrorMessage() );
 	}
 
-	const INITIAL_THRESHOLD = 0.0;
+	const INITIAL_THRESHOLD = 0.5;
 	const INITIAL_OPACITY = 0.8;
 	const INITIAL_STEPS = 200;
 
@@ -52,6 +52,7 @@ class Ring {
     const { radius, orientation, offset } = this;
     let distance;
 
+    // Calculate the distance depending on the orientation
     if (orientation === 'x-y') {
       distance = Math.sqrt((x - offset.x) ** 2 + (y - offset.y) ** 2);
     } else if (orientation === 'y-z') {
@@ -60,7 +61,7 @@ class Ring {
       distance = Math.sqrt((x - offset.x) ** 2 + (z - offset.z) ** 2);
     }
 
-    return Math.abs(distance - radius) < 0.5; // Tolerance for ring width
+    return Math.abs(distance - radius) < 1.0; // Small tolerance to include the ring width
   }
 }
 
@@ -105,36 +106,26 @@ texture.needsUpdate = true;
 // Function to visualize the rings in a Three.js scene
 function addRingsToScene(scene, rings) {
   rings.forEach((ring) => {
-    const points = [];
+    const geometry = new THREE.TorusGeometry(ring.radius, 1, 16, 100); // Ring with small thickness
+    let rotation = new THREE.Euler();
 
-    const segments = 100;
-    const angleStep = (Math.PI * 2) / segments;
-
-    // Generate points for a simple ring
-    for (let i = 0; i < segments; i++) {
-      const angle = angleStep * i;
-      const x = ring.radius * Math.cos(angle);
-      const y = ring.radius * Math.sin(angle);
-
-      if (ring.orientation === 'x-y') {
-        points.push(new THREE.Vector3(x, y, ring.offset.z));
-      } else if (ring.orientation === 'y-z') {
-        points.push(new THREE.Vector3(ring.offset.x, y, x));
-      } else if (ring.orientation === 'x-z') {
-        points.push(new THREE.Vector3(x, ring.offset.y, y));
-      }
+    // Set rotation based on orientation
+    if (ring.orientation === 'x-y') {
+      rotation.set(0, 0, 0); // Ring on the x-y plane
+    } else if (ring.orientation === 'y-z') {
+      rotation.set(Math.PI / 2, 0, 0); // Ring on the y-z plane
+    } else if (ring.orientation === 'x-z') {
+      rotation.set(0, Math.PI / 2, 0); // Ring on the x-z plane
     }
 
-    // Create the ring using LineLoop to represent the circular shape
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }); // Wireframe for visualization
+    const mesh = new THREE.Mesh(geometry, material);
 
-    const line = new THREE.LineLoop(geometry, material);
+    // Apply rotation and offset
+    mesh.rotation.copy(rotation);
+    mesh.position.set(ring.offset.x, ring.offset.y, ring.offset.z);
 
-    // Offset the line based on the ring's position
-    line.position.set(ring.offset.x, ring.offset.y, ring.offset.z);
-
-    scene.add(line);
+    scene.add(mesh);
   });
 }
 
@@ -333,6 +324,10 @@ function addRingsToScene(scene, rings) {
         }
     }
 `;
+
+
+
+
 
 
 	init();
