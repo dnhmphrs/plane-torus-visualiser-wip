@@ -88,11 +88,11 @@
 	<div class="loading">loading.</div>
 {/if}
 
-<div class="app">
+<!-- <div class="app">
 	<main>
 		<slot />
 	</main>
-</div>
+</div> -->
 
 <style>
 	.app {
